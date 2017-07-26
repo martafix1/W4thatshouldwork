@@ -22,6 +22,8 @@ public class Player extends Entity {
     private int xMovmentImput;
     private int yMovmentImput;
     private boolean shiftPressed;
+    //private boolean Freezed;
+    private boolean Alive;
     private float xSpeed;
     private float ySpeed;
     private float f = (float) 0.1;
@@ -29,8 +31,11 @@ public class Player extends Entity {
     private int xMoveTo;
     private int yMoveTo;
     private boolean DoMoveTo;
+    private float HP;
+    private float MaxHP;
+    private float DMGTaken;
 
-    public Player(int xPosition, int yPosition, int xSize, int ySize, Color color) {
+    public Player(int xPosition, int yPosition, int xSize, int ySize, Color color, float MaxHP,boolean  Alive) {
         this.xPosition = xPosition;
         this.yPosition = yPosition;
         this.xSize = xSize;
@@ -41,7 +46,11 @@ public class Player extends Entity {
         this.xSpeed = 0;
         this.ySpeed = 0;
         this.DoMoveTo = false;
-    }
+        this.MaxHP = MaxHP;
+        this.HP = MaxHP;
+        this.Alive = Alive;
+    
+    }   
 
     public int getxPosition() {
         return xPosition;
@@ -82,12 +91,47 @@ public class Player extends Entity {
     public void setColor(Color color) {
         this.color = color;
     }
-
-    public void Render(Graphics g) {
-        g.setColor(color);
-        g.fillRect(xPosition, yPosition, xSize, ySize);
+    
+    public void TakeDMG(float DMGTaken){
+    this.DMGTaken=DMGTaken;
     }
 
+    public void Render(Graphics g,int baseRenderPointX, int baseRenderPointY) {
+        xPosition+=baseRenderPointX;
+        yPosition+=baseRenderPointY;
+        g.setColor(color);
+        g.fillRect(xPosition, yPosition, xSize, ySize);
+        xPosition-=baseRenderPointX;
+        yPosition-=baseRenderPointY;
+        
+    }
+
+    public float getHP() {
+        return HP;
+    }
+
+    public void setHP(float HP) {
+        this.HP = HP;
+    }
+
+    public float getMaxHP() {
+        return MaxHP;
+    }
+
+    public void setMaxHP(float MaxHP) {
+        this.MaxHP = MaxHP;
+    }
+
+    public boolean isAlive() {
+        return Alive;
+    }
+
+    public void setAlive(boolean Alive) {
+        this.Alive = Alive;
+    }
+    
+    
+    
     public void MoveInput(boolean upPressed, boolean downPressed, boolean leftPressed, boolean rightPressed, boolean  shiftPressed) {
 
         if (upPressed) {
@@ -121,14 +165,26 @@ public class Player extends Entity {
 
     public void update() {
        
-        int modifier = 10;
+        if(Alive){
+        
+            
+            HP-=DMGTaken;
+            DMGTaken = 0;
+        if(HP<=0){
+        Alive = false;
+        
+        }
+            
+            
+            int modifier = 10;
         if(shiftPressed){
         modifier /= 2;
         }
         
+        
         /*if(DoMoveTo){
         
-        }else*/{
+        }else*/
         xSpeed =xMovmentImput*modifier;
         xSpeed = xSpeed*f;
         ySpeed =yMovmentImput*modifier;
@@ -139,4 +195,5 @@ public class Player extends Entity {
         System.out.println(ySpeed); */
         }
     }
+    
 }

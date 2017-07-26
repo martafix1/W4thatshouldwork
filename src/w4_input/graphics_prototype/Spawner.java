@@ -1,4 +1,4 @@
-    /*
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -12,21 +12,19 @@ import java.awt.Graphics;
  *
  * @author martin
  */
-public class Finish extends Entity{
-    
+public class Spawner extends Entity{
     private int xPosition;
     private int yPosition;
     private int xSize;
     private int ySize;
-    private Color color = Color.red;
+    private Color color=Color.RED;
     private boolean Activated = false;
     private boolean Activation = false;
     private boolean Reset = false;
     private int activationTime;
     private int maxActivationTime;
 
-
-    public Finish(int xPosition, int yPosition, int xSize, int ySize,int activationTime) {
+    public Spawner(int xPosition, int yPosition, int xSize, int ySize, int activationTime) {
         this.xPosition = xPosition;
         this.yPosition = yPosition;
         this.xSize = xSize;
@@ -34,6 +32,8 @@ public class Finish extends Entity{
         this.activationTime = activationTime;
         this.maxActivationTime = activationTime;
     }
+
+       
 
     public int getxPosition() {
         return xPosition;
@@ -46,7 +46,7 @@ public class Finish extends Entity{
     public int getyPosition() {
         return yPosition;
     }
-    
+
     public void setyPosition(int yPosition) {
         this.yPosition = yPosition;
     }
@@ -67,24 +67,12 @@ public class Finish extends Entity{
         this.ySize = ySize;
     }
 
-    
-    
-    
-
     public boolean isActivated() {
         return Activated;
     }
 
     public void setActivated(boolean Activated) {
         this.Activated = Activated;
-    }
-
-    public int getActivationTime() {
-        return activationTime;
-    }
-
-    public void setActivationTime(int activationTime) {
-        this.activationTime = activationTime;
     }
 
     public boolean isActivation() {
@@ -95,6 +83,14 @@ public class Finish extends Entity{
         this.Activation = Activation;
     }
 
+    public int getActivationTime() {
+        return activationTime;
+    }
+
+    public void setActivationTime(int activationTime) {
+        this.activationTime = activationTime;
+    }
+
     public int getMaxActivationTime() {
         return maxActivationTime;
     }
@@ -103,22 +99,12 @@ public class Finish extends Entity{
         this.maxActivationTime = maxActivationTime;
     }
 
-    public boolean isReset() {
-        return Reset;
-    }
-
-    public void setReset(boolean Reset) {
-        this.Reset = Reset;
-    }
-    
     public void reset(){
     Reset = true;
     Activation = true;
     Activated = false;
     activationTime += 3;
     }
-    
-    
     
     public void Render(Graphics g,int baseRenderPointX,int baseRenderPointY) {
         xPosition += baseRenderPointX;
@@ -131,7 +117,7 @@ public class Finish extends Entity{
         g.setColor(Color.BLACK);
         g.fillRect(xPosition+3, yPosition+3, xSize-6, ySize-6);
         
-        g.setColor(Color.CYAN);
+        g.setColor(Color.pink);
         g.fillRect((xPosition+3)+(int)(((float)xSize/2)*((float)activationTime/(float)maxActivationTime)),(yPosition+3)+(int)(((float)ySize/2)*((float)activationTime/(float)maxActivationTime)),(xSize-6)-(int)((float)(xSize-6)*(float)activationTime/(float)maxActivationTime),(ySize-6)-(int)((float)(ySize-6)*(float)activationTime/(float)maxActivationTime));
         
         xPosition -= baseRenderPointX;
@@ -140,26 +126,23 @@ public class Finish extends Entity{
         
         
     }
-
     
 
     public void update() {
        
         if(Activation){
+        
         color = Color.orange;
-        if(activationTime>0){
         activationTime--;
-        }
         
         }
         if(activationTime==0){
         color = Color.GREEN;
         Activated = true;
         Activation =false;
-        
+        activationTime --;
             
-        }
-        
+        } 
         if(Reset)
         {
         activationTime+=2;
@@ -172,7 +155,13 @@ public class Finish extends Entity{
         
         }
         
-       
-    }
+        /*if(DoMoveTo){
+        
+        }else*/{
 
+      /*  System.out.println(xSpeed);
+        System.out.println(ySpeed); */
+        }
+    }
+    
 }

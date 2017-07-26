@@ -45,90 +45,120 @@ public class Render extends Canvas implements Runnable {
     protected int runtimeFPS = 0;
     protected int FPS = 0;
     protected long totalticks;
-    public static final int EstaminatedTicks = 60;
-    public static final int EstaminatedFPS = 120;
-    public static final int False = 1;
-    public static final int left = 2;
-    public static final int right = 3;
-    public static final int top = 4;
-    public static final int down = 5;
+    protected int EstaminatedTicks = 60;
+    protected int EstaminatedFPS = 120;
+    protected int ScreenWidth = 800;
+    protected int ScreenHeight = 650;
+    protected int baseRenderPointX = 0;
+    protected int baseRenderPointY = 0;
+    public static final int left = 0;
+    public static final int top = 1;
+    public static final int right = 2;
+    public static final int down = 3;
     protected int level = 1;
     MouseInput mouse;
     // Keyboard polling
     KeyboardInput keyboard;
-    protected Player player = new Player(100, 100, 35, 35, Color.yellow);
-    protected Finish finish = new Finish(350, 350, 50, 50, Color.DARK_GRAY, Color.PINK);
+    protected Player player = new Player(100, 100, 0, 0, Color.YELLOW, 100, false);
+    
+    protected Finish finish ;
+    protected Spawner spawner ;
     private boolean upPressed = false;
     private boolean downPressed = false;
     private boolean leftPressed = false;
     private boolean rightPressed = false;
     private boolean shiftPressed = false;
     private Color wallcolor = Color.WHITE;
+    private Color walltouchcolor = Color.RED;
     private ArrayList<Wall> walls = new ArrayList<Wall>();
+    private ArrayList<Lava> lavas = new ArrayList<Lava>();
+    private ArrayList<Switch> switches = new ArrayList<Switch>();
+    private ArrayList<Engine> engines = new ArrayList<Engine>();
     File f = new File("wallz.data");
     boolean v = true;
     File g = new File("text.txt");
+
     public Render() {
         super();
+        readText(g);
         this.isRunning = false;
         this.paused = false;
-        this.setSize(new Dimension(800, 650));
-        this.walls.add(new Wall(300, 300, 10, 100, wallcolor));
-        outputWallstoFile(f);
-        walls = null;
-        readText(g);
-     
+        this.setSize(new Dimension(ScreenWidth, ScreenHeight));
+        finish = new Finish(350, 350, 50, 50, 300);
+        spawner = new Spawner(100, 100, 35, 34, 120);
+        this.lavas.add(new Lava(500, 400, 100, 100, 6));
+        this.walls.add(new Wall(315, 325, 10, 100, wallcolor, walltouchcolor));
+        this.walls.add(new Wall(425, 325, 10, 100, wallcolor, walltouchcolor));
+        this.walls.add(new Wall(325, 315, 100, 10, wallcolor, walltouchcolor));
+        this.walls.add(new Wall(325, 425, 100, 10, wallcolor, walltouchcolor));
+        this.engines.add(new Engine(315,300, walls.get(0),2));
+        this.switches.add(new Switch(150,400,30,30, 120, engines.get(0), Color.CYAN,Switch.TOUCH));
+        
+        //outputWallstoFile(f);
+        //walls = null;
+        spawner.setActivation(true);
+
+        //walls.get(0).loadTexture();
     }
-    public void readText(File g){
+
+    public void readText(File g) {
         String line;
         try {
             BufferedReader br = new BufferedReader(new FileReader(g));
             line = br.readLine();
-           while(line != null){
-               
-               String[] text = line.split("c");
-               ArrayList<String> l = new ArrayList<>(Arrays.asList(text));
-               int x = Integer.parseInt(l.get(0));
-               System.out.println(x);
-               System.out.println(l.toString());
-           line = br.readLine();
-           }
+            while (line != null) {
+
+                String[] text = line.split(":");
+                ArrayList<String> l = new ArrayList<>(Arrays.asList(text));
+                if ("framerate".equals(l.get(0))) {
+                    EstaminatedFPS = Integer.parseInt(l.get(1));
+                    System.out.println(EstaminatedFPS);
+                }
+                if ("width".equals(l.get(0))) {
+                    ScreenWidth = Integer.parseInt(l.get(1));
+                    System.out.println(ScreenWidth);
+                }
+                if ("height".equals(l.get(0))) {
+                    ScreenHeight = Integer.parseInt(l.get(1));
+                    System.out.println(ScreenHeight);
+                }
+
+                System.out.println(l.toString());
+                line = br.readLine();
+            }
         } catch (FileNotFoundException ex) {
             System.err.println(ex.getMessage());
         } catch (IOException ex) {
             Logger.getLogger(Render.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
     public void readWallsfromFile(File f) {
-        try{
-        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f));
-        walls = (ArrayList<Wall>) ois.readObject();
-        }
-        catch(FileNotFoundException ex){
+        try {
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f));
+            walls = (ArrayList<Wall>) ois.readObject();
+        } catch (FileNotFoundException ex) {
+            System.err.println(ex.getMessage());
+        } catch (ClassNotFoundException ex) {
+            System.err.println(ex.getMessage());
+        } catch (IOException ex) {
             System.err.println(ex.getMessage());
         }
-        catch(ClassNotFoundException ex){
-            System.err.println(ex.getMessage());
-        }catch(IOException ex){
-            System.err.println(ex.getMessage());
-        }
-    
+
     }
-    
+
     public void outputWallstoFile(File f) {
-        try{
-        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(f));
-        oos.writeObject(walls);
-        }
-        catch(FileNotFoundException ex){
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(f));
+            oos.writeObject(walls);
+        } catch (FileNotFoundException ex) {
+            System.err.println(ex.getMessage());
+        } catch (IOException ex) {
             System.err.println(ex.getMessage());
         }
-        
-        catch(IOException ex){
-            System.err.println(ex.getMessage());
-        }
-    
+
     }
+
     public boolean isIsRunning() {
         return isRunning;
     }
@@ -203,9 +233,7 @@ public class Render extends Canvas implements Runnable {
         keyboard = new KeyboardInput();
         addKeyListener(keyboard);
         this.addKeyListener(keyboard);
-        
-       
-        
+
         // Add mouse listeners
         mouse = new MouseInput();
         addMouseListener(mouse);
@@ -216,6 +244,20 @@ public class Render extends Canvas implements Runnable {
 
     }
 
+    public void spawn(Spawner spawner) {
+        player.setxPosition(spawner.getxPosition());
+        player.setyPosition(spawner.getyPosition());
+        player.setxSize(spawner.getxSize());
+        player.setySize(spawner.getySize());
+        player.setMaxHP(100);
+        player.setHP(player.getMaxHP());
+        player.setColor(Color.YELLOW);
+        player.setAlive(true);
+
+    }
+    
+
+    
     public boolean playerColisionFull(Entity finish) {
         if (player.getxPosition() > finish.getxPosition() && player.getxPosition() + player.getxSize() < finish.getxPosition() + finish.getxSize()) {
             if (player.getyPosition() > finish.getyPosition() && player.getyPosition() + player.getySize() < finish.getyPosition() + finish.getySize()) {
@@ -224,28 +266,89 @@ public class Render extends Canvas implements Runnable {
         }
         return false;
     }
-    
-    public int playerColisionTouch(Entity wall) {
-        
+
+    public boolean playerColisionTouch(Entity wall) {
+
         Point PlayerCenter = new Point(player.getxPosition() + (player.getxSize() / 2), player.getyPosition() + (player.getySize() / 2));
-        
-        if(player.getxPosition()+player.getxSize()>wall.getxPosition() && player.getxPosition()< wall.getxPosition()+wall.getxSize() && player.getyPosition()+player.getySize()>wall.getyPosition() && player.getyPosition()< wall.getyPosition()+wall.getySize() )
-        {
-            
-            
-           {
-             return this.left;
+
+        if (player.getxPosition() + player.getxSize() > wall.getxPosition() && player.getxPosition() < wall.getxPosition() + wall.getxSize() && player.getyPosition() + player.getySize() > wall.getyPosition() && player.getyPosition() < wall.getyPosition() + wall.getySize()) {
+            {
+                return true;
             }
-            
-            
-            
-            
-            
-            
         }
-        
-        
-            return this.False; 
+
+        return false;
+    }
+
+    public int getPenX(Entity wall) {
+        int Tx = (wall.getxPosition() + wall.getxSize() / 2) - (player.getxPosition() + player.getxSize() / 2);
+        int PenX = (player.getxSize() / 2) + (wall.getxSize() / 2) - Math.abs(Tx);
+        if (Tx > 0) {
+            PenX += 1;
+        }
+        return PenX;
+    }
+
+    public int getPenY(Entity wall) {
+        int Ty = (wall.getyPosition() + wall.getySize() / 2) - (player.getyPosition() + player.getySize() / 2);
+        int PenY = (player.getySize() / 2) + (wall.getySize() / 2) - Math.abs(Ty);
+        if (Ty > 0) {
+            PenY += 1;
+        }
+        return PenY;
+    }
+
+    public float playerOverlap(Entity wall) {
+        float PenX = getPenX(wall);
+        float PenY = getPenY(wall);
+        if (PenX < 0 || PenY < 0) {
+            return 0;
+        }
+
+        if (PenX > player.getxSize()) {
+            PenX = player.getxSize();
+        }
+        if (PenY > player.getySize()) {
+            PenY = player.getySize();
+        }
+        float OverlapX = PenX / player.getxSize();
+        float OverlapY = PenY / player.getySize();
+
+        return OverlapX * OverlapY;
+
+    }
+
+    public boolean[] CollisonBlock(Entity wall) {
+
+        int Tx = (wall.getxPosition() + wall.getxSize() / 2) - (player.getxPosition() + player.getxSize() / 2);
+        int Ty = (wall.getyPosition() + wall.getySize() / 2) - (player.getyPosition() + player.getySize() / 2);
+        boolean[] activeSides = {false, false, false, false};
+        int PenX = (player.getxSize() / 2) + (wall.getxSize() / 2) - Math.abs(Tx);
+        int PenY = (player.getySize() / 2) + (wall.getySize() / 2) - Math.abs(Ty);
+
+        if (PenX <= PenY) {
+
+            if (Tx < 0) {
+                player.setxPosition(player.getxPosition() + PenX);
+                activeSides[right] = true;
+            }
+            if (Tx > 0) {
+                player.setxPosition(player.getxPosition() - PenX - 1);
+                activeSides[left] = true;
+            }
+        } else {
+            if (Ty < 0) {
+                player.setyPosition(player.getyPosition() + PenY);
+                activeSides[down] = true;
+            }
+            if (Ty > 0) {
+                player.setyPosition(player.getyPosition() - PenY - 1);
+                activeSides[top] = true;
+            }
+
+        }
+
+        return activeSides;
     }
 
     public void sleep(int time) {
@@ -285,10 +388,10 @@ public class Render extends Canvas implements Runnable {
             if (keyboard.keyDown(KeyEvent.VK_SHIFT)) {
                 //System.out.println("w4_input.graphics_prototype.Render.KeyBinder();keyboard.keyDown(KeyEvent.VK_A) || keyboard.keyDown(KeyEvent.VK_LEFT)");
                 shiftPressed = true;
-                
+
             }
         }
-        
+
         if (upPressed == true) {
             if (!keyboard.keyDown(KeyEvent.VK_W) && !keyboard.keyDown(KeyEvent.VK_UP)) {
                 //System.out.println("w4_input.graphics_prototype.Render.KeyBinder();!keyboard.keyDown(KeyEvent.VK_W) || !keyboard.keyDown(KeyEvent.VK_UP");
@@ -313,12 +416,12 @@ public class Render extends Canvas implements Runnable {
                 rightPressed = false;
             }
         }
-        
+
         if (shiftPressed == true) {
             if (!keyboard.keyDown(KeyEvent.VK_SHIFT)) {
                 //System.out.println("w4_input.graphics_prototype.Render.KeyBinder();keyboard.keyDown(KeyEvent.VK_A) || keyboard.keyDown(KeyEvent.VK_LEFT)");
                 shiftPressed = false;
-                
+
             }
         }
     }
@@ -327,21 +430,89 @@ public class Render extends Canvas implements Runnable {
         player.MoveInput(upPressed, downPressed, leftPressed, rightPressed, shiftPressed);
         player.update();
         finish.update();
-        
-        if(v){readWallsfromFile(f);v=false;}
-        if (playerColisionFull(finish)) {
-            finish.setColor(Color.green);
-            finish.setScndcolor(Color.BLACK);
+        spawner.update();
+        if (spawner.isActivated()) {
+            spawn(spawner);
+            spawner.setActivated(false);
 
         }
-        for (Wall w : this.walls) {
-            if(this.left==playerColisionTouch(w)){
-            w.setMaincolor(Color.RED);
-            }else{w.setMaincolor(Color.WHITE);}
+        if (spawner.getActivationTime() < 0 && !playerColisionTouch(spawner)) {
+            spawner.reset();
+        }
+        if (spawner.getActivationTime() == spawner.getMaxActivationTime() && playerColisionTouch(spawner)) {
+            spawner.setActivation(true);
+        }
+
+        if (!player.isAlive()) {
+            if (finish.isActivation() || finish.isActivated()) {
+                if(!finish.isReset())
+                {finish.reset();}
+
+            } else {
+                spawner.setActivation(true);
+
+            }
+        }
+
+        if (player.getxPosition() + baseRenderPointX < 100) {
+            baseRenderPointX += (100 - (baseRenderPointX + player.getxPosition()));
+        }
+        if (player.getxPosition() + baseRenderPointX > this.getWidth() - 100) {
+            baseRenderPointX -= ((baseRenderPointX + player.getxPosition()) - (this.getWidth() - 100));
+        }
+
+        if (player.getyPosition() + baseRenderPointY < 100) {
+            baseRenderPointY += (100 - (baseRenderPointY + player.getyPosition()));
+        }
+        if (player.getyPosition() + baseRenderPointY > this.getHeight() - 100) {
+            baseRenderPointY -= ((baseRenderPointY + player.getyPosition()) - (this.getHeight() - 100));
+        }
+
+        if (v) {
+            readWallsfromFile(f);
+            v = false;
+        }
+        if (playerColisionTouch(finish)) {
+            finish.setActivation(true);
+        }
+        if (playerColisionFull(finish)) {
+
         }
         
-        
-        
+        for (Lava l : this.lavas) {
+            if (playerColisionTouch(l)) {
+                player.TakeDMG(l.getDmg() * playerOverlap(l));
+
+            }
+        }
+        for (Switch s : this.switches) {
+            if(s.getActivationType() == s.TOUCH){
+                if(playerColisionTouch(s)){
+                s.setActivation(true);
+                    System.out.println("TOUCH");
+                }}
+            if(s.getActivationType() == s.FULL){
+                if(playerColisionFull(s)){
+                s.setActivation(true);
+                }
+            }
+            s.update();
+        }
+        for (Engine e : this.engines) {
+            e.update();
+            
+        }
+        for (Wall w : this.walls) {
+            boolean[] activeSides = {false, false, false, false};
+            if (playerColisionTouch(w)) {
+
+                activeSides = CollisonBlock(w);
+                w.setActiveSides(activeSides);
+            } else {
+                w.setActiveSides(activeSides);
+            }
+            
+        }
     }
 
     private void render() {
@@ -351,23 +522,41 @@ public class Render extends Canvas implements Runnable {
             return;
         }
         Graphics g = buffer.getDrawGraphics();
-
+        g.setColor(Color.DARK_GRAY);
         g.fillRect(0, 0, this.getWidth(), this.getHeight());
         g.setColor(Color.GRAY);
         g.fillRect(0, 0, this.getWidth(), 100);
         g.setColor(Color.orange);
         g.drawString("FPS: " + runtimeFPS, 20, 20);
         g.drawString("FPS realtime calculation: " + FPS, 20, 40);
-        
-        
-        finish.Render(g);
-        player.Render(g);
-         
+        g.drawString("Player X" + player.getxPosition() + " Y" + player.getyPosition() + " HP" + player.getHP() + "/" + player.getMaxHP(), 20, 60);
+        g.drawString("Player-Lava PenX" + getPenX(lavas.get(0)) + " PenY" + getPenY(lavas.get(0)) + "|Overlap" + (float) playerOverlap(lavas.get(0)), 20, 80);
+        g.setColor(Color.PINK);
+        g.drawRect(baseRenderPointX, baseRenderPointY, (int) this.getMinimumSize().getWidth(), (int) this.getMinimumSize().getHeight());
+        g.drawRect(baseRenderPointX - 1, baseRenderPointY - 1, this.getWidth() + 2, this.getHeight() + 2);
+
+        spawner.Render(g, baseRenderPointX, baseRenderPointY);
+        finish.Render(g, baseRenderPointX, baseRenderPointY);
+        for (Lava l : this.lavas) {
+            l.Render(g, baseRenderPointX, baseRenderPointY);
+        }
+        player.Render(g, baseRenderPointX, baseRenderPointY);
+
         for (Wall w : this.walls) {
-            w.Render(g);
+            w.Render(g, baseRenderPointX, baseRenderPointY);
         }
         
-        //g.fillPolygon(x,y,4);
+        for(Switch s : this.switches )
+        {
+            s.Render(g, baseRenderPointX, baseRenderPointY);
+        }
+        
+        for(Engine e : this.engines )
+        {
+            e.Render(g, baseRenderPointX, baseRenderPointY);
+        }
+
+//g.fillPolygon(x,y,4);
         g.dispose();
         buffer.show();
     }

@@ -8,6 +8,7 @@ package w4_input.graphics_prototype;
 
   import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import javax.swing.JFrame;
 import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JOptionPane; 
@@ -34,10 +35,11 @@ public class W4_inputGraphics_prototype extends JFrame {
     this.setVisible(true);
     this.add(rnd);
     this.pack();
-    this.setLocation(300,300);
+    this.setLocation(100,100);
     this.setTitle("Čtverešek kterim se hibe");
-    this.setResizable(false);
+    this.setResizable(true);
     this.setBackground(Color.yellow);
+    this.setMinimumSize(new Dimension(800,650));
     
     rnd.start(); 
     
