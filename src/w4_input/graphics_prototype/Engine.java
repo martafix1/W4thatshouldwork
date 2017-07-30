@@ -12,15 +12,13 @@ import java.awt.Graphics;
  *
  * @author martin
  */
-public class Engine extends Entity {
+public class Engine extends Entity implements Activatable{
 
-    private int xPosition;
-    private int yPosition;
-    private int xSize;
-    private int ySize;
+    
     private Color color = Color.RED;
     private boolean Activated = false;
     private boolean Running = false;
+    private boolean Following = true;
     private boolean ScndPossition = false;
     private Entity Slave;
     private float xSpeed;
@@ -37,8 +35,8 @@ public class Engine extends Entity {
     public Engine(int xPositionB, int yPositionB, Entity Slave, float speed) {
         this.xPositionB = xPositionB;
         this.yPositionB = yPositionB;
-        this.xSize = 12;
-        this.ySize = 8;
+        this.xSize = 10;
+        this.ySize = 7;
         this.Slave = Slave;
         this.speed = speed;
         this.xPosition = this.xPositionA = Slave.getxPosition();
@@ -47,7 +45,7 @@ public class Engine extends Entity {
 
     }
 
-    public Engine(int xPosition, int yPosition, int xSize, int ySize, Entity Slave, float speed, int xPositionA, int yPositionA, int xPositionB, int yPositionB) {
+    public Engine(int xPosition, int yPosition, int xSize, int ySize, Entity Slave, float speed,boolean Following, int xPositionA, int yPositionA, int xPositionB, int yPositionB) {
         this.xPosition = xPosition;
         this.yPosition = yPosition;
         this.xSize = xSize;
@@ -58,6 +56,7 @@ public class Engine extends Entity {
         this.yPositionA = yPositionA;
         this.xPositionB = xPositionB;
         this.yPositionB = yPositionB;
+        this.Following = Following;
     }
 
     public int getxPosition() {
@@ -117,18 +116,25 @@ public class Engine extends Entity {
     }
 
     public void reset() {
-        Activated = false;
+        Activated = true;
+        ScndPossition = true;
     }
 
     public float speedVectorToTime(int xDistance, int yDistance, float speed) {
         float distance = (float) Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
         return distance / speed;
     }
+    
+    @Override
+    public void activate() {
+        Activated = true;
+    }
+    
 
     public void Render(Graphics g, int baseRenderPointX, int baseRenderPointY) {
         xPosition += baseRenderPointX;
         yPosition += baseRenderPointY;
-        Slave.setxPosition(20);
+        
         g.setColor(Color.GRAY);
         g.drawRect(xPosition, yPosition, xSize - 1, ySize - 1);
         g.setColor(Color.DARK_GRAY);
@@ -142,9 +148,7 @@ public class Engine extends Entity {
     }
 
     public void update() {
-        Slave.setxPosition(200);
-        System.out.println("Slave X"+Slave.getxPosition());
-        /*
+        
         if (Activated) {
             color = Color.orange;
             if (!ScndPossition) {
@@ -159,19 +163,22 @@ public class Engine extends Entity {
                     ySpeedRounder = ySpeed;
                     Slave.setxPosition(Slave.getxPosition() + (int) xSpeedRounder);
                     Slave.setyPosition(Slave.getyPosition() + (int) ySpeedRounder);
-                    System.out.println(!Running);
-                } else {
+                    } else {
 
                     
-                    xSpeedRounder -= (int) xSpeed;
-                    ySpeedRounder -= (int) ySpeed;
-                    System.out.println(xSpeedRounder);
+                    if(Math.abs(xSpeedRounder)>1){
+                    int i = (int)xSpeedRounder;
+                    xSpeedRounder -=i;
+                    }
+                    if(Math.abs(ySpeedRounder)>1){
+                    int i = (int)ySpeedRounder;
+                    ySpeedRounder -=i;
+                    }
                     xSpeedRounder += xSpeed;
                     ySpeedRounder += ySpeed;
-                    
                     Slave.setxPosition(Slave.getxPosition() + (int) xSpeedRounder);
                     Slave.setyPosition(Slave.getyPosition() + (int) ySpeedRounder);
-                    if (xSpeed > ySpeed) {
+                    if (Math.abs(xSpeed)> Math.abs(ySpeed)) {
                         if ((xPositionB - 2) < Slave.getxPosition() && Slave.getxPosition() < (xPositionB + 2)) {
                             Running = false;
                             Activated = false;
@@ -192,10 +199,10 @@ public class Engine extends Entity {
 
                 }
             } else {
-
+{
                 if (!Running) {
-                    int xDistance = xPositionB - Slave.getxPosition();
-                    int yDistance = yPositionB - Slave.getyPosition();
+                    int xDistance = xPositionA - Slave.getxPosition();
+                    int yDistance = yPositionA - Slave.getyPosition();
                     float T = speedVectorToTime(xDistance, yDistance, speed);
                     xSpeed = xDistance / T;
                     ySpeed = yDistance / T;
@@ -204,44 +211,57 @@ public class Engine extends Entity {
                     ySpeedRounder = ySpeed;
                     Slave.setxPosition(Slave.getxPosition() + (int) xSpeedRounder);
                     Slave.setyPosition(Slave.getyPosition() + (int) ySpeedRounder);
-
+                    System.out.println(Running+" "+xSpeed+" "+ySpeed);
                 } else {
 
-                    xSpeedRounder -= (int) xSpeed;
-                    ySpeedRounder -= (int) ySpeed;
+                    
+                    if(Math.abs(xSpeedRounder)>1){
+                    int i = (int)xSpeedRounder;
+                    xSpeedRounder -=i;
+                    }
+                    if(Math.abs(ySpeedRounder)>1){
+                    int i = (int)ySpeedRounder;
+                    ySpeedRounder -=i;
+                    }
                     xSpeedRounder += xSpeed;
                     ySpeedRounder += ySpeed;
+                    System.out.println("Speed "+xSpeed+" "+ySpeed+"Rounders "+xSpeedRounder+" "+ySpeedRounder);
                     Slave.setxPosition(Slave.getxPosition() + (int) xSpeedRounder);
                     Slave.setyPosition(Slave.getyPosition() + (int) ySpeedRounder);
-                    if (xSpeed > ySpeed) {
-                        if ((xPositionB - 2) < Slave.getxPosition() && Slave.getxPosition() < (xPositionB + 2)) {
+                    if (Math.abs(xSpeed)> Math.abs(ySpeed)) {
+                        if ((xPositionA - 2) < Slave.getxPosition() && Slave.getxPosition() < (xPositionA + 2)) {
                             Running = false;
                             Activated = false;
-                            ScndPossition = true;
-                            Slave.setxPosition(xPositionB);
-                            Slave.setyPosition(yPositionB);
+                            ScndPossition = false;
+                            Slave.setxPosition(xPositionA);
+                            Slave.setyPosition(yPositionA);
                         }
                     } else {
-                        if ((yPositionB - 2) < Slave.getyPosition() && Slave.getyPosition() < (yPositionB + 2)) {
+                        if ((yPositionA - 2) < Slave.getyPosition() && Slave.getyPosition() < (yPositionA + 2)) {
                             Running = false;
                             Activated = false;
-                            ScndPossition = true;
-                            Slave.setxPosition(xPositionB);
-                            Slave.setyPosition(yPositionB);
+                            ScndPossition = false;
+                            Slave.setxPosition(xPositionA);
+                            Slave.setyPosition(yPositionA);
                         }
 
                     }
 
                 }
-
             }
-
+            }
+            if(Following){
+            xPosition = Slave.getxPosition();
+            yPosition = Slave.getyPosition();
+            }
         }else{
         if(ScndPossition){color = Color.GREEN;}
         if(!ScndPossition){color = Color.RED;}
             
         }
-        */
+        
     }
+
+    
 
 }
