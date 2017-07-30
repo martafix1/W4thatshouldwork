@@ -14,28 +14,29 @@ import java.awt.Graphics;
  */
 public class Player extends Entity {
 
-    private int xPosition;
-    private int yPosition;
-    private int xSize;
-    private int ySize;
     private Color color;
     private int xMovmentImput;
     private int yMovmentImput;
+    private float xSpeedRounder;
+    private float ySpeedRounder;
+    private float speed;
     private boolean shiftPressed;
     //private boolean Freezed;
     private boolean Alive;
     private float xSpeed;
     private float ySpeed;
-    private float f = (float) 0.1;
-    private int Ft = 2;
+    private float friction = 0.5f;
     private int xMoveTo;
     private int yMoveTo;
     private boolean DoMoveTo;
     private float HP;
     private float MaxHP;
     private float DMGTaken;
+    private short DMGTakenTimeout;
+    public static final short DMGTakenTimeoutMax = 120;
 
-    public Player(int xPosition, int yPosition, int xSize, int ySize, Color color, float MaxHP,boolean  Alive) {
+    public Player(int xPosition, int yPosition, int xSize, int ySize, Color color, float MaxHP, boolean Alive) {
+        this.speed = 2;
         this.xPosition = xPosition;
         this.yPosition = yPosition;
         this.xSize = xSize;
@@ -49,8 +50,8 @@ public class Player extends Entity {
         this.MaxHP = MaxHP;
         this.HP = MaxHP;
         this.Alive = Alive;
-    
-    }   
+
+    }
 
     public int getxPosition() {
         return xPosition;
@@ -91,18 +92,32 @@ public class Player extends Entity {
     public void setColor(Color color) {
         this.color = color;
     }
-    
-    public void TakeDMG(float DMGTaken){
-    this.DMGTaken=DMGTaken;
+
+    public void TakeDMG(float DMGTaken) {
+        this.DMGTaken = DMGTaken;
+        DMGTakenTimeout += DMGTakenTimeoutMax *(Math.abs(DMGTaken*2)/MaxHP)*10 ;
+        if(DMGTakenTimeout>DMGTakenTimeoutMax){
+        DMGTakenTimeout = DMGTakenTimeoutMax;
+        }
+        
     }
 
-    public void Render(Graphics g,int baseRenderPointX, int baseRenderPointY) {
-        xPosition+=baseRenderPointX;
-        yPosition+=baseRenderPointY;
+    public float speedVectorToTime(int xDistance, int yDistance, float speed) {
+        float distance = (float) Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+        return distance / speed;
+    }
+
+    public void Render(Graphics g, int baseRenderPointX, int baseRenderPointY) {
+        xPosition += baseRenderPointX;
+        yPosition += baseRenderPointY;
         g.setColor(color);
         g.fillRect(xPosition, yPosition, xSize, ySize);
-        xPosition-=baseRenderPointX;
-        yPosition-=baseRenderPointY;
+        g.setColor(new Color(1f,0f,0f,(float)DMGTakenTimeout/DMGTakenTimeoutMax));
+        g.fillRect(xPosition -5, yPosition-15, xSize+10, 10);
+        g.setColor(new Color(0f,1f,0f,(float)DMGTakenTimeout/DMGTakenTimeoutMax));
+        g.fillRect(xPosition -5, yPosition-15, (int)((xSize+10)*(HP/MaxHP)), 10);
+        xPosition -= baseRenderPointX;
+        yPosition -= baseRenderPointY;
         
     }
 
@@ -129,71 +144,81 @@ public class Player extends Entity {
     public void setAlive(boolean Alive) {
         this.Alive = Alive;
     }
-    
-    
-    
-    public void MoveInput(boolean upPressed, boolean downPressed, boolean leftPressed, boolean rightPressed, boolean  shiftPressed) {
+
+    public void MoveInput(boolean upPressed, boolean downPressed, boolean leftPressed, boolean rightPressed, boolean shiftPressed) {
 
         if (upPressed) {
-            yMovmentImput = -Ft;
+            yMovmentImput = -1;
         }
         if (downPressed) {
-            yMovmentImput = Ft;
+            yMovmentImput = 1;
         }
         if (!downPressed && !upPressed) {
             yMovmentImput = 0;
         }
         if (rightPressed) {
-            xMovmentImput = Ft;
+            xMovmentImput = 1;
         }
         if (leftPressed) {
-            xMovmentImput = -Ft;
+            xMovmentImput = -1;
         }
         if (!rightPressed && !leftPressed) {
             xMovmentImput = 0;
         }
-        if(shiftPressed)
-        {
-        this.shiftPressed = true;
+        if (shiftPressed) {
+            this.shiftPressed = true;
         }
-        if(!shiftPressed)
-        {
-        this.shiftPressed = false;
+        if (!shiftPressed) {
+            this.shiftPressed = false;
         }
-        
+
     }
 
     public void update() {
-       
-        if(Alive){
+
         
-            
-            HP-=DMGTaken;
+        if(DMGTakenTimeout>0){
+        DMGTakenTimeout--;
+        }
+        if (Alive) {
+        float modifier = 2;
+            HP -= DMGTaken;    
             DMGTaken = 0;
-        if(HP<=0){
-        Alive = false;
-        
-        }
+            if (HP <= 0) {
+                Alive = false;
+
+            }
+            if (shiftPressed) {
+                modifier /= 4;
+            }
             
             
-            int modifier = 10;
-        if(shiftPressed){
-        modifier /= 2;
-        }
-        
-        
-        /*if(DoMoveTo){
-        
-        }else*/
-        xSpeed =xMovmentImput*modifier;
-        xSpeed = xSpeed*f;
-        ySpeed =yMovmentImput*modifier;
-        ySpeed = ySpeed*f;
-        xPosition+=xSpeed;
-        yPosition+=ySpeed;
-      /*  System.out.println(xSpeed);
+            xSpeed += (xMovmentImput * modifier);
+            ySpeed += (yMovmentImput * modifier);
+            xSpeed -= (xSpeed * friction);
+            ySpeed -= (ySpeed * friction);
+            if(Math.abs(xSpeed)<0.00001){xSpeed = 0f;}
+            if(Math.abs(ySpeed)<0.00001){ySpeed = 0f;}
+            if (Math.abs(xSpeedRounder) >= 1) {
+                int i = (int) xSpeedRounder;
+                xSpeedRounder -= i;
+            }
+            if (Math.abs(ySpeedRounder) >= 1) {
+                int i = (int) ySpeedRounder;
+                ySpeedRounder -= i;
+            }
+            
+            xSpeedRounder += xSpeed;
+            ySpeedRounder += ySpeed;
+            //System.out.println("SpeedX"+xSpeed+" Y"+ySpeed);
+            
+
+            xPosition += (int)xSpeedRounder;
+            yPosition += (int)ySpeedRounder;
+
+            /*  System.out.println(xSpeed);
         System.out.println(ySpeed); */
         }
     }
-    
+
 }

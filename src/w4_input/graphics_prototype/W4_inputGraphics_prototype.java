@@ -39,7 +39,7 @@ public class W4_inputGraphics_prototype extends JFrame {
     this.setTitle("Čtverešek kterim se hibe");
     this.setResizable(true);
     this.setBackground(Color.yellow);
-    this.setMinimumSize(new Dimension(800,650));
+    this.setMinimumSize(new Dimension(700,550));
     
     rnd.start(); 
     

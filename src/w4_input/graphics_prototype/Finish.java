@@ -12,7 +12,7 @@ import java.awt.Graphics;
  *
  * @author martin
  */
-public class Finish extends Entity{
+public class Finish extends Entity implements Activatable{
     
     private int xPosition;
     private int yPosition;
@@ -117,7 +117,10 @@ public class Finish extends Entity{
     Activated = false;
     activationTime += 3;
     }
-    
+    @Override
+    public void activate() {
+    Activation = true;
+    }
     
     
     public void Render(Graphics g,int baseRenderPointX,int baseRenderPointY) {
@@ -174,5 +177,7 @@ public class Finish extends Entity{
         
        
     }
+
+    
 
 }

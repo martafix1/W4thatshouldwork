@@ -23,15 +23,11 @@ import javax.imageio.ImageIO;
  * @author martin
  */
 public class Wall extends Entity{
-    private int xPosition;
-    private int yPosition;
-    private int xSize;
-    private int ySize;
+    
     private boolean[] activeSides = {false,false,false,false};
-    private BufferedImage texture;
     private Color TouchColor;
     private Color MainColor;
-    
+    private BufferedImage texture;
     public Wall(int xPosition, int yPosition, int xSize, int ySize,Color MainColor,Color TouchColor) {
         this.xPosition = xPosition;
         this.yPosition = yPosition;
@@ -45,35 +41,43 @@ public class Wall extends Entity{
     
     
      
+    @Override
     public int getxPosition() {
         return xPosition;
     }
 
+    @Override
     public void setxPosition(int xPosition) {
         this.xPosition = xPosition;
-        //System.out.println("w4_input.graphics_prototype.Wall.setxPosition()");
+        
     }
 
+    @Override
     public int getyPosition() {
         return yPosition;
     }
 
+    @Override
     public void setyPosition(int yPosition) {
         this.yPosition = yPosition;
     }
 
+    @Override
     public int getxSize() {
         return xSize;
     }
 
+    @Override
     public void setxSize(int xSize) {
         this.xSize = xSize;
     }
 
+    @Override
     public int getySize() {
         return ySize;
     }
 
+    @Override
     public void setySize(int ySize) {
         this.ySize = ySize;
     }
@@ -88,47 +92,50 @@ public class Wall extends Entity{
         this.activeSides = activeSides;
     }
     
-    /*public void loadTexture(){
+    public void loadTexture(){
     try{
-         texture = ImageIO.read(new File("metalwall.png"));
+         texture = ImageIO.read(new File("brickwall.jpg"));
          } catch (FileNotFoundException ex) {
             System.err.println(ex.getMessage());
         } catch (IOException ex) {
             Logger.getLogger(Render.class.getName()).log(Level.SEVERE, null, ex);
         }
     
-    }*/
+    }
     
     public void Render(Graphics g, int baseRenderPointX, int baseRenderPointY){
     xPosition+=baseRenderPointX;
         yPosition+=baseRenderPointY;
         
         g.setColor(MainColor);
-    g.fillRect(xPosition, yPosition, xSize, ySize);
-        /*Graphics2D g2d = (Graphics2D) g.create();
-
-        g2d.setPaint(new TexturePaint(texture, new Rectangle(0, 0, 400, 400)));
+        g.fillRect(xPosition, yPosition, xSize, ySize);
+        try{
+        Graphics2D g2d = (Graphics2D) g.create();
+        g2d.setPaint(new TexturePaint(texture, new Rectangle(0, 0, 64, 64)));
         g2d.fillRect(xPosition, yPosition, xSize, ySize);
-        g2d.dispose();*/
-    g.setColor(TouchColor);
-    if(activeSides[0]){
-    g.fillRect(xPosition, yPosition,xSize/4,ySize);
-    
-    }
-    if(activeSides[1]){
-    g.fillRect(xPosition, yPosition,xSize, (ySize/4));
-    }
-    if(activeSides[2]){
-    g.fillRect(xPosition+xSize-(xSize/4), yPosition,(xSize/4), ySize);
-    }
-    if(activeSides[3]){
-    g.fillRect(xPosition, yPosition+ySize-(ySize/4), xSize, (ySize/4));
-    }
+        g2d.dispose();}catch(Exception ex){
+        
+        }
+        /*g.setColor(TouchColor);
+        if(activeSides[0]){
+        g.fillRect(xPosition, yPosition,xSize/4,ySize);
+        
+        }
+        if(activeSides[1]){
+        g.fillRect(xPosition, yPosition,xSize, (ySize/4));
+        }
+        if(activeSides[2]){
+        g.fillRect(xPosition+xSize-(xSize/4), yPosition,(xSize/4), ySize);
+        }
+        if(activeSides[3]){
+        g.fillRect(xPosition, yPosition+ySize-(ySize/4), xSize, (ySize/4));
+        }*/
     
     xPosition-=baseRenderPointX;
     yPosition-=baseRenderPointY;
     
     }
+    
     
     
     

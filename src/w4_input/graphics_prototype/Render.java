@@ -60,9 +60,9 @@ public class Render extends Canvas implements Runnable {
     // Keyboard polling
     KeyboardInput keyboard;
     protected Player player = new Player(100, 100, 0, 0, Color.YELLOW, 100, false);
-    
-    protected Finish finish ;
-    protected Spawner spawner ;
+
+    protected Finish finish;
+    protected Spawner spawner;
     private boolean upPressed = false;
     private boolean downPressed = false;
     private boolean leftPressed = false;
@@ -74,6 +74,7 @@ public class Render extends Canvas implements Runnable {
     private ArrayList<Lava> lavas = new ArrayList<Lava>();
     private ArrayList<Switch> switches = new ArrayList<Switch>();
     private ArrayList<Engine> engines = new ArrayList<Engine>();
+
     File f = new File("wallz.data");
     boolean v = true;
     File g = new File("text.txt");
@@ -86,14 +87,28 @@ public class Render extends Canvas implements Runnable {
         this.setSize(new Dimension(ScreenWidth, ScreenHeight));
         finish = new Finish(350, 350, 50, 50, 300);
         spawner = new Spawner(100, 100, 35, 34, 120);
-        this.lavas.add(new Lava(500, 400, 100, 100, 6));
+        this.lavas.add(new Lava(200, 150, 400, 100, 6));
+        this.lavas.add(new Lava(200, 500, 400, 100, 6));
+        this.lavas.add(new Lava(600, 150, 100, 450, 6));
+        this.walls.add(new Wall(315, 325, 10, 100, wallcolor, walltouchcolor));
         this.walls.add(new Wall(315, 325, 10, 100, wallcolor, walltouchcolor));
         this.walls.add(new Wall(425, 325, 10, 100, wallcolor, walltouchcolor));
         this.walls.add(new Wall(325, 315, 100, 10, wallcolor, walltouchcolor));
         this.walls.add(new Wall(325, 425, 100, 10, wallcolor, walltouchcolor));
-        this.engines.add(new Engine(315,300, walls.get(0),2));
-        this.switches.add(new Switch(150,400,30,30, 120, engines.get(0), Color.CYAN,Switch.TOUCH));
-        
+        this.engines.add(new Engine(315, 225, walls.get(0), (float) 0.5));
+        this.engines.add(new Engine(315, 425, walls.get(1), (float) 0.5));
+        this.switches.add(new Switch(150, 400, 30, 30, 120, engines.get(0), Color.CYAN, Switch.TOUCH, Switch.ACTIVATE));
+        this.switches.get(0).addSlave(engines.get(1), Switch.ACTIVATE);
+        this.switches.add(new Switch(450, 350, 40, 40, 120, engines.get(0), Color.BLUE, Switch.FULL, Switch.ACTIVATE));
+        this.switches.get(1).addSlave(engines.get(1), Switch.ACTIVATE);
+        this.switches.get(1).addSlave(switches.get(0), Switch.RESET);
+        this.switches.get(1).addSlave(finish, Switch.ACTIVATE);
+        walls.get(0).loadTexture();
+        walls.get(1).loadTexture();
+        walls.get(2).loadTexture();
+        walls.get(3).loadTexture();
+        //walls.get(4).loadTexture();
+
         //outputWallstoFile(f);
         //walls = null;
         spawner.setActivation(true);
@@ -253,11 +268,11 @@ public class Render extends Canvas implements Runnable {
         player.setHP(player.getMaxHP());
         player.setColor(Color.YELLOW);
         player.setAlive(true);
-
+        for (Switch s : switches) {
+            s.reset();
+        }
     }
-    
 
-    
     public boolean playerColisionFull(Entity finish) {
         if (player.getxPosition() > finish.getxPosition() && player.getxPosition() + player.getxSize() < finish.getxPosition() + finish.getxSize()) {
             if (player.getyPosition() > finish.getyPosition() && player.getyPosition() + player.getySize() < finish.getyPosition() + finish.getySize()) {
@@ -424,6 +439,7 @@ public class Render extends Canvas implements Runnable {
 
             }
         }
+
     }
 
     private void update() {
@@ -445,63 +461,59 @@ public class Render extends Canvas implements Runnable {
 
         if (!player.isAlive()) {
             if (finish.isActivation() || finish.isActivated()) {
-                if(!finish.isReset())
-                {finish.reset();}
+                if (!finish.isReset()) {
+                    finish.reset();
+                }
 
             } else {
                 spawner.setActivation(true);
 
             }
         }
+        if(!keyboard.keyDown(KeyEvent.VK_V))//BASE RENDER POINT
+        {
+            if (player.getxPosition() + baseRenderPointX < 100) {
+                baseRenderPointX += (100 - (baseRenderPointX + player.getxPosition()));
+            }
+            if (player.getxPosition() + baseRenderPointX > this.getWidth() - 100) {
+                baseRenderPointX -= ((baseRenderPointX + player.getxPosition()) - (this.getWidth() - 100));
+            }
 
-        if (player.getxPosition() + baseRenderPointX < 100) {
-            baseRenderPointX += (100 - (baseRenderPointX + player.getxPosition()));
+            if (player.getyPosition() + baseRenderPointY < 100) {
+                baseRenderPointY += (100 - (baseRenderPointY + player.getyPosition()));
+            }
+            if (player.getyPosition() + baseRenderPointY > this.getHeight() - 100) {
+                baseRenderPointY -= ((baseRenderPointY + player.getyPosition()) - (this.getHeight() - 100));
+            }
+        }else{
+        if(keyboard.keyDown(KeyEvent.VK_B)){
+        baseRenderPointX = 0;
+        baseRenderPointY = 0;
         }
-        if (player.getxPosition() + baseRenderPointX > this.getWidth() - 100) {
-            baseRenderPointX -= ((baseRenderPointX + player.getxPosition()) - (this.getWidth() - 100));
+        if(keyboard.keyDown(KeyEvent.VK_C)){
+        baseRenderPointX = -player.getxPosition()-(player.getxSize()/2)+(this.getWidth()/2);
+        baseRenderPointY = -player.getyPosition()-(player.getySize()/2)+(this.getHeight()/2);
+            System.out.println(this.getWidth() +"  "+ this.getHeight());
+        
         }
-
-        if (player.getyPosition() + baseRenderPointY < 100) {
-            baseRenderPointY += (100 - (baseRenderPointY + player.getyPosition()));
-        }
-        if (player.getyPosition() + baseRenderPointY > this.getHeight() - 100) {
-            baseRenderPointY -= ((baseRenderPointY + player.getyPosition()) - (this.getHeight() - 100));
+        
+        
+        
+        
+        
         }
 
         if (v) {
             readWallsfromFile(f);
             v = false;
         }
-        if (playerColisionTouch(finish)) {
+        /*if (playerColisionTouch(finish)) {
             finish.setActivation(true);
-        }
+        }*/
         if (playerColisionFull(finish)) {
 
         }
-        
-        for (Lava l : this.lavas) {
-            if (playerColisionTouch(l)) {
-                player.TakeDMG(l.getDmg() * playerOverlap(l));
 
-            }
-        }
-        for (Switch s : this.switches) {
-            if(s.getActivationType() == s.TOUCH){
-                if(playerColisionTouch(s)){
-                s.setActivation(true);
-                    System.out.println("TOUCH");
-                }}
-            if(s.getActivationType() == s.FULL){
-                if(playerColisionFull(s)){
-                s.setActivation(true);
-                }
-            }
-            s.update();
-        }
-        for (Engine e : this.engines) {
-            e.update();
-            
-        }
         for (Wall w : this.walls) {
             boolean[] activeSides = {false, false, false, false};
             if (playerColisionTouch(w)) {
@@ -511,8 +523,33 @@ public class Render extends Canvas implements Runnable {
             } else {
                 w.setActiveSides(activeSides);
             }
-            
+
         }
+
+        for (Lava l : this.lavas) {
+            if (playerColisionTouch(l)) {
+                player.TakeDMG(l.getDmg() * playerOverlap(l));
+
+            }
+        }
+        for (Switch s : this.switches) {
+            if (s.getActivationType() == s.TOUCH) {
+                if (playerColisionTouch(s)) {
+                    s.setActivation(true);
+}
+            }
+            if (s.getActivationType() == s.FULL) {
+                if (playerColisionFull(s)) {
+                    s.setActivation(true);
+                }
+            }
+            s.update();
+        }
+        for (Engine e : this.engines) {
+            e.update();
+
+        }
+
     }
 
     private void render() {
@@ -540,19 +577,17 @@ public class Render extends Canvas implements Runnable {
         for (Lava l : this.lavas) {
             l.Render(g, baseRenderPointX, baseRenderPointY);
         }
+        for (Switch s : this.switches) {
+            s.Render(g, baseRenderPointX, baseRenderPointY);
+        }
+
         player.Render(g, baseRenderPointX, baseRenderPointY);
 
         for (Wall w : this.walls) {
             w.Render(g, baseRenderPointX, baseRenderPointY);
         }
-        
-        for(Switch s : this.switches )
-        {
-            s.Render(g, baseRenderPointX, baseRenderPointY);
-        }
-        
-        for(Engine e : this.engines )
-        {
+
+        for (Engine e : this.engines) {
             e.Render(g, baseRenderPointX, baseRenderPointY);
         }
 
